@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Natural Gas Pipeline Risk Mapping — Ankita Prashant Naik</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #0D1B2A;
+      --navy-mid: #1B2E45;
+      --accent: #2979FF;
+      --accent-light: #82B1FF;
+      --danger: #D32F2F;
+      --success: #2E7D32;
+      --text: #1A1A2E;
+      --muted: #546E7A;
+      --border: #E0E7EF;
+      --bg: #F8FAFC;
+      --card: #FFFFFF;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.65;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+      color: #fff;
+      padding: 64px 24px 56px;
+      text-align: center;
+    }
+    header .badge {
+      display: inline-block;
+      background: rgba(41,121,255,0.25);
+      color: var(--accent-light);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(130,177,255,0.3);
+    }
+    header h1 {
+      font-size: clamp(24px, 4vw, 42px);
+      font-weight: 700;
+      line-height: 1.2;
+      max-width: 820px;
+      margin: 0 auto 16px;
+    }
+    header p.subtitle {
+      font-size: 17px;
+      color: #B0BEC5;
+      margin-bottom: 32px;
+    }
+    .header-links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .header-links a {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 22px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .header-links a:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-outline { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,0.4); }
+
+    /* ── Layout ── */
+    main { max-width: 1060px; margin: 0 auto; padding: 0 20px 80px; }
+    section { margin-top: 64px; }
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--navy);
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--accent);
+      margin-bottom: 24px;
+      display: inline-block;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 28px 32px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+
+    /* ── Research question callout ── */
+    .callout {
+      background: #E3F2FD;
+      border-left: 4px solid var(--accent);
+      border-radius: 4px;
+      padding: 18px 22px;
+      font-size: 15px;
+      color: #1A237E;
+      font-style: italic;
+    }
+
+    /* ── Map iframe ── */
+    .map-container {
+      width: 100%;
+      height: 520px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    .map-container iframe { width: 100%; height: 100%; border: none; }
+    .map-note {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* ── QGIS images ── */
+    .map-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 640px) { .map-grid { grid-template-columns: 1fr; } }
+    .map-grid figure { margin: 0; }
+    .map-grid img {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .map-grid figcaption { font-size: 13px; color: var(--muted); margin-top: 7px; text-align: center; }
+
+    /* ── Findings ── */
+    .findings ul { list-style: none; padding: 0; }
+    .findings li {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 15px;
+    }
+    .findings li:last-child { border-bottom: none; }
+    .findings li::before {
+      content: "▶";
+      color: var(--accent);
+      font-size: 11px;
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+
+    /* ── Metrics table ── */
+    .metrics-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    .metrics-table th {
+      background: var(--navy);
+      color: #fff;
+      padding: 10px 16px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .metrics-table td { padding: 11px 16px; border-bottom: 1px solid var(--border); }
+    .metrics-table tr:last-child td { border-bottom: none; }
+    .metrics-table tr:nth-child(even) td { background: #F8FAFC; }
+    .metric-highlight { font-weight: 700; color: var(--accent); }
+
+    /* ── Model output images ── */
+    .output-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .output-grid img {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .output-grid p { font-size: 13px; color: var(--muted); margin-top: 6px; text-align: center; }
+
+    /* ── Tech stack badges ── */
+    .tech-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+    .tech-badge {
+      background: var(--navy);
+      color: #E3F2FD;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 20px;
+      letter-spacing: 0.3px;
+    }
+
+    /* ── Data sources ── */
+    .source-list { list-style: none; padding: 0; }
+    .source-list li {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+    .source-list li:last-child { border-bottom: none; }
+    .source-list a { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .source-list a:hover { text-decoration: underline; }
+    .source-label {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-right: 8px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--navy);
+      color: #90A4AE;
+      text-align: center;
+      padding: 36px 20px;
+      font-size: 14px;
+      margin-top: 80px;
+    }
+    footer a { color: var(--accent-light); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    footer .footer-links { display: flex; justify-content: center; gap: 24px; margin-top: 12px; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════ HEADER ══════════════ -->
+<header>
+  <div class="badge">Data Science · Geospatial ML · Energy Infrastructure</div>
+  <h1>Natural Gas Pipeline Risk Mapping &amp; Incident Prediction</h1>
+  <p class="subtitle">Ankita Prashant Naik &nbsp;·&nbsp; Master's-Level Portfolio Project</p>
+  <div class="header-links">
+    <a href="https://github.com/ankitanaik/natural-gas-pipeline-risk" class="btn-primary" target="_blank">
+      &#128196; GitHub Repository
+    </a>
+    <a href="https://linkedin.com/in/ankitaprashantnaik" class="btn-outline" target="_blank">
+      &#128101; LinkedIn
+    </a>
+  </div>
+</header>
+
+<main>
+
+  <!-- ══ Project Overview ══ -->
+  <section>
+    <h2>Project Overview</h2>
+    <div class="card">
+      <p>
+        This end-to-end geospatial machine learning project predicts which US natural gas pipeline segments
+        are at highest risk of high-severity incidents using 50+ years of federal PHMSA incident data.
+        The project combines QGIS spatial analysis, GeoPandas feature engineering, Random Forest and XGBoost
+        classifiers, and SHAP explainability into a complete production-style data science pipeline.
+      </p>
+      <br />
+      <p>
+        The output is a live interactive risk map showing county-level ML-predicted risk scores alongside
+        historical incident locations, enabling pipeline operators and regulators to prioritize inspection
+        and maintenance resources before failures occur.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══ Research Question ══ -->
+  <section>
+    <h2>Research Question</h2>
+    <div class="callout">
+      "Which US natural gas pipeline segments are at highest risk of incidents — and can we use historical
+      incident patterns, pipeline characteristics, and geospatial features to build an ML model that predicts
+      high-risk zones before an incident occurs?"
+    </div>
+  </section>
+
+  <!-- ══ Interactive Map ══ -->
+  <section>
+    <h2>Interactive Pipeline Risk Map</h2>
+    <div class="map-container">
+      <iframe src="../outputs/pipeline_risk_map.html" title="Pipeline Risk Map"></iframe>
+    </div>
+    <p class="map-note">
+      Toggle layers: Incident points (red = high severity), Heatmap, ML Risk Scores.
+      Click any point for incident details. Built with Folium + PHMSA incident data (1970–2024).
+    </p>
+  </section>
+
+  <!-- ══ QGIS Maps ══ -->
+  <section>
+    <h2>QGIS Geospatial Analysis</h2>
+    <div class="map-grid">
+      <figure>
+        <img src="../outputs/qgis_map_export.png"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
+             alt="QGIS Choropleth Map — Incident Density by County" />
+        <div style="display:none;background:#F5F5F5;height:280px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#999;font-size:13px;">
+          QGIS choropleth export — run the QGIS workflow to generate
+        </div>
+        <figcaption>County-level incident density choropleth (QGIS 3.x, 300 DPI)</figcaption>
+      </figure>
+      <figure>
+        <img src="../outputs/county_choropleth.png"
+             onerror="this.style.display='none'"
+             alt="GeoPandas County Choropleth" />
+        <img src="../outputs/population_exposure_buffers.png"
+             onerror="this.style.display='none'"
+             alt="Population Exposure Buffers" />
+        <figcaption>1-mile population exposure buffers around high-severity incidents (GeoPandas)</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ══ Key Findings ══ -->
+  <section>
+    <h2>Key Findings</h2>
+    <div class="card findings">
+      <ul>
+        <li>Corrosion and equipment failure are the top two causes of incidents — together accounting
+            for over 60% of all events — making pipeline age and material type the strongest predictors
+            of future severity.</li>
+        <li>Pipelines installed in the 1950s–1970s show a disproportionately high incident rate, highlighting
+            the risk posed by aging steel infrastructure that predates modern PHMSA integrity management rules.</li>
+        <li>Texas and Louisiana account for the largest share of incidents due to their dense Gulf Coast
+            pipeline networks, but Appalachian states (WV, PA) show higher severity rates per incident.</li>
+        <li>SHAP analysis confirms that <em>pipeline age at incident</em>, <em>county incident history</em>,
+            and <em>property damage cost</em> are the three most predictive features — giving operators
+            actionable, interpretable risk signals.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ══ Model Performance ══ -->
+  <section>
+    <h2>Model Performance</h2>
+    <div class="card">
+      <table class="metrics-table">
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>ROC-AUC</th>
+            <th>F1 (Weighted)</th>
+            <th>Precision</th>
+            <th>Recall</th>
+            <th>Training Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Random Forest</strong></td>
+            <td class="metric-highlight" id="rf-auc">—</td>
+            <td id="rf-f1">—</td>
+            <td id="rf-prec">—</td>
+            <td id="rf-rec">—</td>
+            <td id="rf-time">—</td>
+          </tr>
+          <tr>
+            <td><strong>XGBoost</strong></td>
+            <td class="metric-highlight" id="xgb-auc">—</td>
+            <td id="xgb-f1">—</td>
+            <td id="xgb-prec">—</td>
+            <td id="xgb-rec">—</td>
+            <td id="xgb-time">—</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top:14px;font-size:13px;color:var(--muted);">
+        Metrics populate after running notebook 04 — values update from <code>data/processed/risk_scores.csv</code>.
+        Class imbalance handled via <code>class_weight='balanced'</code> (RF) and <code>scale_pos_weight</code> (XGBoost).
+      </p>
+    </div>
+
+    <!-- Model output images -->
+    <div class="output-grid" style="margin-top: 24px;">
+      <div>
+        <img src="../outputs/roc_curve.png" alt="ROC-AUC Curve"
+             onerror="this.style.opacity=0.2" />
+        <p>ROC-AUC Curve — Random Forest vs XGBoost</p>
+      </div>
+      <div>
+        <img src="../outputs/shap_summary.png" alt="SHAP Feature Importance"
+             onerror="this.style.opacity=0.2" />
+        <p>SHAP Summary — Top 15 Features Driving Risk Predictions</p>
+      </div>
+      <div>
+        <img src="../outputs/feature_importance.png" alt="Feature Importance"
+             onerror="this.style.opacity=0.2" />
+        <p>Random Forest Feature Importance — Top 20</p>
+      </div>
+      <div>
+        <img src="../outputs/confusion_matrix.png" alt="Confusion Matrix"
+             onerror="this.style.opacity=0.2" />
+        <p>Confusion Matrix — Best Model</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ Tech Stack ══ -->
+  <section>
+    <h2>Tech Stack</h2>
+    <div class="card">
+      <div class="tech-grid">
+        <span class="tech-badge">QGIS 3.x</span>
+        <span class="tech-badge">Python 3.11</span>
+        <span class="tech-badge">GeoPandas</span>
+        <span class="tech-badge">Shapely</span>
+        <span class="tech-badge">Fiona</span>
+        <span class="tech-badge">Rasterio</span>
+        <span class="tech-badge">scikit-learn</span>
+        <span class="tech-badge">Random Forest</span>
+        <span class="tech-badge">XGBoost</span>
+        <span class="tech-badge">SHAP</span>
+        <span class="tech-badge">Folium</span>
+        <span class="tech-badge">Kepler.gl</span>
+        <span class="tech-badge">Pandas</span>
+        <span class="tech-badge">NumPy</span>
+        <span class="tech-badge">Matplotlib</span>
+        <span class="tech-badge">Seaborn</span>
+        <span class="tech-badge">Jupyter</span>
+        <span class="tech-badge">GitHub Pages</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ Data Sources ══ -->
+  <section>
+    <h2>Data Sources</h2>
+    <div class="card">
+      <ul class="source-list">
+        <li>
+          <span class="source-label">Primary</span>
+          <a href="https://www.phmsa.dot.gov/data-and-statistics/pipeline/distribution-transmission-gathering-lng-and-liquid-accident-and-incident-data"
+             target="_blank">
+            PHMSA Gas Transmission Incident Data
+          </a>
+          — US DOT Pipeline &amp; Hazardous Materials Safety Administration. 1970–2024. Incident locations,
+          causes, casualties, and property damage. Free, no signup required.
+        </li>
+        <li>
+          <span class="source-label">Annual</span>
+          <a href="https://www.phmsa.dot.gov/data-and-statistics/pipeline/source-data" target="_blank">
+            PHMSA Gas Transmission Annual Report Data
+          </a>
+          — Pipeline mileage, material, installation date, diameter, pressure by state and operator.
+        </li>
+        <li>
+          <span class="source-label">Spatial</span>
+          <a href="https://www.npms.phmsa.dot.gov/GeneralPublic.aspx" target="_blank">
+            National Pipeline Mapping System (NPMS)
+          </a>
+          — Public pipeline route shapefiles by state (operator, commodity, geometry).
+        </li>
+        <li>
+          <span class="source-label">Census</span>
+          <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html"
+             target="_blank">
+            US Census TIGER/Line County Shapefiles
+          </a>
+          — cb_2023_us_county_500k.zip — county boundaries and FIPS codes.
+        </li>
+        <li>
+          <span class="source-label">ACS</span>
+          <a href="https://data.census.gov" target="_blank">
+            American Community Survey 5-Year Estimates
+          </a>
+          — Population density and median income by county (for exposure analysis).
+        </li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer>
+  <p><strong>Ankita Prashant Naik</strong> &nbsp;·&nbsp; Natural Gas Pipeline Risk Mapping &amp; Incident Prediction</p>
+  <div class="footer-links">
+    <a href="https://github.com/ankitanaik/natural-gas-pipeline-risk" target="_blank">GitHub</a>
+    <a href="https://linkedin.com/in/ankitaprashantnaik" target="_blank">LinkedIn</a>
+    <a href="mailto:ankitapnaik13@gmail.com">Contact</a>
+  </div>
+  <p style="margin-top:16px;font-size:12px;opacity:0.6;">
+    Data: PHMSA / US DOT · Built with Python, QGIS, and Folium · Deployed via GitHub Pages
+  </p>
+</footer>
+
+</body>
+</html>
